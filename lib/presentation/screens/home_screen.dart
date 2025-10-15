@@ -6,25 +6,25 @@ class HomeScreen extends StatelessWidget {
   final User user;
   const HomeScreen({super.key, required this.user});
 
-  bool esUdea(String? correo) {
-    if (correo != null) {
-      if (correo.contains('udea.edu.co')) {
-        return true;
-      }
-    }
-    return false;
-  }
+  // bool esUdea(String? correo) {
+  //   if (correo != null) {
+  //     if (correo.contains('gmail.com')) {
+  //       return true;
+  //     }
+  //   }
+  //   return false;
+  // }
 
   @override
   Widget build(BuildContext context) {
-    if (!esUdea(user.email)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HelloScreen()),
-        );
-      });
-    }
+    // if (!esUdea(user.email)) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     Navigator.pushReplacement(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => const HelloScreen()),
+    //     );
+    //   });
+    // }
     return Scaffold(
       appBar: AppBar(
         title: const Text('login exitosoo'),
