@@ -220,6 +220,12 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                   ),
                 ],
               ),
+              const Text('Precio mínimo'),
+              const CustomTextForm(
+                size: 1,
+                textoPista: 'Precio',
+                esNumerico: true,
+              ),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
@@ -291,11 +297,13 @@ class CustomChipCategory extends StatelessWidget {
 class CustomTextForm extends StatelessWidget {
   final int size;
   final String textoPista;
+  final bool esNumerico;
 
   const CustomTextForm({
     super.key,
     required this.size,
     required this.textoPista,
+    this.esNumerico = false,
   });
 
   @override
@@ -318,6 +326,7 @@ class CustomTextForm extends StatelessWidget {
       decoration: inputDecoration,
       maxLines: size,
       minLines: size,
+      keyboardType: (esNumerico) ? TextInputType.number : TextInputType.text,
     );
   }
 }
