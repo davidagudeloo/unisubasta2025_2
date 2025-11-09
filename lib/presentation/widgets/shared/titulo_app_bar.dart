@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 
 class TituloAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TituloAppBar({super.key});
@@ -19,6 +20,7 @@ class TituloAppBar extends StatelessWidget implements PreferredSizeWidget {
         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
       ),
       centerTitle: false,
+      // backgroundColor: Colors.white.withAlpha(20),
     );
   }
 

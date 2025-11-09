@@ -2,7 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:unisubasta_udea_v1/presentation/screens/home_screen.dart';
+import 'package:unisubasta_udea_v1/constants/app_colors.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/trash/home_screen.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/main_screen.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/registro_producto_screen.dart';
 //impm
 
 class HelloScreen extends StatefulWidget {
@@ -46,7 +49,7 @@ class _HelloScreenState extends State<HelloScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF78A614),
+      backgroundColor: AppColors.verdeClaro,
       // appBar: AppBar(title: const Text("hola")),
       body: SafeArea(
         child: Padding(
@@ -81,7 +84,7 @@ class _HelloScreenState extends State<HelloScreen> {
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2A4009),
+                  backgroundColor: AppColors.verdeOscuro,
                 ),
                 icon: Image.asset(
                   'lib/presentation/assets/images/Google_Favicon_2025.png',
@@ -93,18 +96,26 @@ class _HelloScreenState extends State<HelloScreen> {
                   // ScaffoldMessenger.of(context).showSnackBar(
                   //   const SnackBar(content: Text("Ingresando...")),
                   // );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      duration: const Duration(seconds: 2),
+                      content: Text("Ingresando... espere  por favor"),
+                    ),
+                  );
                   final user = await _signInWithGoogle();
                   if (user != null) {
                     // print("DEBUG → Email obtenido: ${user.email}");
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => HomeScreen(user: user),
+                        builder: (context) => MainScreen(user: user),
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Google sign-in failed')),
+                      const SnackBar(
+                        content: Text('Google sign-in ha fallado'),
+                      ),
                     );
                   }
                 },

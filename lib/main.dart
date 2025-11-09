@@ -18,6 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF78A614),
+        // brightness: Brightness.dark,
       ),
       home: const HelloScreen(),
     );

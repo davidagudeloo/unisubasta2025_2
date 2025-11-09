@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_app_bar.dart';
+import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
 
 class RegistroProductoScreen extends StatefulWidget {
   const RegistroProductoScreen({super.key});
@@ -7,8 +9,6 @@ class RegistroProductoScreen extends StatefulWidget {
   @override
   State<RegistroProductoScreen> createState() => _RegistroProductoScreenState();
 }
-
-final verdeClaro = const Color(0xff78A614);
 
 class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
   bool _librosSeleccionado = false;
@@ -32,10 +32,8 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Publicar producto',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-              ),
+              const TituloSeccion(texto: 'Publicar producto'),
+
               const Text(
                 'Subir fotos',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -49,13 +47,13 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                     height: 90,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      color: verdeClaro,
+                      color: AppColors.verdeClaro,
                     ),
                     child: const Icon(Icons.image, size: 40),
                   ),
                   Material(
                     borderRadius: BorderRadius.circular(20),
-                    color: verdeClaro,
+                    color: AppColors.verdeClaro,
                     child: InkWell(
                       onTap: () {
                         print('presionado');
@@ -71,7 +69,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                   ),
                   Material(
                     borderRadius: BorderRadius.circular(20),
-                    color: verdeClaro,
+                    color: AppColors.verdeClaro,
                     child: InkWell(
                       onTap: () {
                         print('presionado');
@@ -176,7 +174,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                   Row(
                     children: [
                       Radio<int>(
-                        activeColor: verdeClaro,
+                        activeColor: AppColors.verdeClaro,
                         value: 24,
                         groupValue: _tiempoSeleccionado,
                         onChanged: (value) {
@@ -191,7 +189,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                   Row(
                     children: [
                       Radio<int>(
-                        activeColor: verdeClaro,
+                        activeColor: AppColors.verdeClaro,
                         value: 48,
                         groupValue: _tiempoSeleccionado,
                         onChanged: (value) {
@@ -206,7 +204,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                   Row(
                     children: [
                       Radio<int>(
-                        activeColor: verdeClaro,
+                        activeColor: AppColors.verdeClaro,
                         value: 72,
                         groupValue: _tiempoSeleccionado,
                         onChanged: (value) {
@@ -231,7 +229,9 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                 child: TextButton(
                   onPressed: () {},
                   style: ButtonStyle(
-                    backgroundColor: WidgetStateProperty.all(verdeClaro),
+                    backgroundColor: WidgetStateProperty.all(
+                      AppColors.verdeClaro,
+                    ),
                   ),
                   child: const Text(
                     'Publicar Subasta',
@@ -243,20 +243,24 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        selectedItemColor: verdeClaro,
-        backgroundColor: Colors.transparent,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
-          BottomNavigationBarItem(icon: Icon(Icons.pan_tool), label: 'Pujar'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.store_mall_directory),
-            label: 'Sub',
+      floatingActionButton: FloatingActionButton.small(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+
+        backgroundColor: AppColors.verdeClaro.withAlpha(200),
+        // shape: const StadiumBorder(),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: const Text(
+          'X',
+          style: TextStyle(
+            color: Colors.white,
+            // fontSize: 20,
+            fontWeight: FontWeight.w700,
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-        ],
+        ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 }
@@ -284,7 +288,7 @@ class CustomChipCategory extends StatelessWidget {
       ),
       selected: categoriaSeleccionada,
       onSelected: onSelected,
-      backgroundColor: verdeClaro,
+      backgroundColor: AppColors.verdeClaro,
       selectedColor: const Color.fromARGB(255, 80, 121, 18),
       checkmarkColor: Colors.white,
       shape: RoundedRectangleBorder(
@@ -312,7 +316,7 @@ class CustomTextForm extends StatelessWidget {
     // final FocusNode focusNode = FocusNode();
 
     final outlineInputBorder = OutlineInputBorder(
-      borderSide: const BorderSide(color: Colors.black),
+      borderSide: const BorderSide(color: Color.fromARGB(255, 69, 69, 69)),
       borderRadius: BorderRadius.circular(20),
     );
 
