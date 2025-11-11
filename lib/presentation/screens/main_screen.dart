@@ -53,6 +53,7 @@ class _MainScreenState extends State<MainScreen> {
             )
           : null,
       bottomNavigationBar: BottomNavigationBar(
+        elevation: 10,
         currentIndex: _current_index,
         onTap: (value) {
           setState(() {

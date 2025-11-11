@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_mis_productos.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_producto.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
 
@@ -11,20 +12,20 @@ class MisSubastasScreen extends StatelessWidget {
 
     return SafeArea(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
 
         child: Column(
           children: [
             const Align(
               alignment: Alignment.centerLeft,
-              child: TituloSeccion(texto: 'Mis subastas'),
+              child: TituloSeccion(texto: '  Mis subastas'),
             ),
             Wrap(
               spacing: 10,
               runSpacing: 10,
               alignment: WrapAlignment.spaceBetween,
               children: [
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_724892-MCO82040985608_022025-O.webp',
@@ -32,7 +33,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'consola nintendo 3ds',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_2X_779137-MCO92673866773_092025-T.webp',
@@ -40,7 +41,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'monitor asus como nuevo',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_787116-MLA86670756325_062025-O.webp',
@@ -48,7 +49,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'cama muy poco usada',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_614622-MCO89682925106_082025-O.webp',
@@ -56,7 +57,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'no se ha abierto nunca',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_724892-MCO82040985608_022025-O.webp',
@@ -64,7 +65,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'consola nintendo 3ds',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_2X_779137-MCO92673866773_092025-T.webp',
@@ -72,7 +73,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'monitor asus como nuevo',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_787116-MLA86670756325_062025-O.webp',
@@ -80,7 +81,7 @@ class MisSubastasScreen extends StatelessWidget {
                   descripcionProducto: 'cama muy poco usada',
                   precioActual: 300000,
                 ),
-                TarjetaProducto(
+                TarjetaMisProductos(
                   size: size,
                   linkImagen:
                       'https://http2.mlstatic.com/D_NQ_NP_614622-MCO89682925106_082025-O.webp',

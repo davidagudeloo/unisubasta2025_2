@@ -42,15 +42,6 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 spacing: 5,
                 children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: AppColors.verdeClaro,
-                    ),
-                    child: const Icon(Icons.image, size: 40),
-                  ),
                   Material(
                     borderRadius: BorderRadius.circular(20),
                     color: AppColors.verdeClaro,
@@ -63,7 +54,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                       child: const SizedBox(
                         width: 90,
                         height: 90,
-                        child: Icon(Icons.add, size: 40),
+                        child: Icon(Icons.add_photo_alternate, size: 40),
                       ),
                     ),
                   ),
@@ -79,7 +70,23 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
                       child: const SizedBox(
                         width: 90,
                         height: 90,
-                        child: Icon(Icons.add, size: 40),
+                        child: Icon(Icons.add_photo_alternate, size: 40),
+                      ),
+                    ),
+                  ),
+                  Material(
+                    borderRadius: BorderRadius.circular(20),
+                    color: AppColors.verdeClaro,
+                    child: InkWell(
+                      onTap: () {
+                        print('presionado');
+                      },
+                      splashColor: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(20),
+                      child: const SizedBox(
+                        width: 90,
+                        height: 90,
+                        child: Icon(Icons.add_photo_alternate, size: 40),
                       ),
                     ),
                   ),
