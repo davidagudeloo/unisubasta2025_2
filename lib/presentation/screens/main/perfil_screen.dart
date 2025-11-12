@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/chat/chat_screen.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/hello_screen.dart';
 
 class PerfilScreen extends StatelessWidget {
@@ -134,7 +135,7 @@ class PerfilScreen extends StatelessWidget {
             const CustomBotonPerfil(texto: 'Mensajes'),
             // const CustomBotonPerfil(texto: 'Ajustes'),
             // const CustomBotonPerfil(texto: 'Favoritos'),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Align(
               alignment: Alignment.center,
               child: SizedBox(
@@ -179,12 +180,16 @@ class CustomBotonPerfil extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Esta funcionalidad estará disponible muy pronto...',
-              ),
-            ),
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(
+          //     content: Text(
+          //       'Esta funcionalidad estará disponible muy pronto...',
+          //     ),
+          //   ),
+          // );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatScreen()),
           );
         },
         splashColor: AppColors.verdeClaro.withValues(alpha: 0.5),
