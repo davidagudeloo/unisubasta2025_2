@@ -18,7 +18,7 @@ class MyMessageBubble extends StatelessWidget {
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Text(
-              'Reprehenderit ullamco ut ',
+              'siempre con lo mismo... ',
               style: TextStyle(color: Colors.white),
             ),
           ),
