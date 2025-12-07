@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
 import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/main_screen.dart';
-//impm
 
 class HelloScreen extends StatefulWidget {
   const HelloScreen({super.key});
@@ -24,31 +24,57 @@ class _HelloScreenState extends State<HelloScreen> {
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+
       final userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
       debugPrint('Google sign-in error: $e');
+      return null;
     }
   }
 
-  // bool esUdea(String? correo) {
-  //   if (correo != null) {
-  //     if (correo.contains('udea.edu.co')) {
-  //       return true;
-  //     }
-  //   }
-  //   return false;
-  // }
+  Future<bool> enviarUsuarioAlBackend(User user) async {
+    try {
+      final token = await user.getIdToken();
+
+      final url =
+          Uri.parse('http://192.168.30.114:8080/api/users/me');
+
+      final response = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          "descripcionPersonal": "Usuario nuevo",
+          "urlFotoPerfil": user.photoURL ?? ""
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        debugPrint('Usuario permitido por el backend');
+        return true;
+      } else {
+        debugPrint('Backend rechazó el usuario: ${response.statusCode}');
+        debugPrint(response.body);
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error de conexión con el backend: $e');
+      return false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.verdeClaro,
-      // appBar: AppBar(title: const Text("hola")),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 50),
@@ -71,7 +97,7 @@ class _HelloScreenState extends State<HelloScreen> {
               ),
               const SizedBox(height: 26),
               const Text(
-                "Utiliza tu correo institucional para hacer parte de esta comunidad",
+                "Utiliza tu correo institucional UdeA para hacer parte de esta comunidad",
                 style: TextStyle(color: Colors.white, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -89,20 +115,20 @@ class _HelloScreenState extends State<HelloScreen> {
                   width: 24,
                   height: 24,
                 ),
-                // icon: const Icon(Icons.mail, color: Colors.white),
                 onPressed: () async {
-                  // ScaffoldMessenger.of(context).showSnackBar(
-                  //   const SnackBar(content: Text("Ingresando...")),
-                  // );
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      duration: const Duration(seconds: 2),
-                      content: Text("Ingresando... espere  por favor"),
+                      duration: Duration(seconds: 2),
+                      content: Text("Ingresando... espere por favor"),
                     ),
                   );
+
                   final user = await _signInWithGoogle();
-                  if (user != null) {
-                    // print("DEBUG → Email obtenido: ${user.email}");
+                  if (user == null) return;
+
+                  final permitido = await enviarUsuarioAlBackend(user);
+
+                  if (permitido) {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
@@ -112,9 +138,14 @@ class _HelloScreenState extends State<HelloScreen> {
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Google sign-in ha fallado'),
+                        content: Text(
+                          "Solo correos institucionales pueden ingresar",
+                        ),
                       ),
                     );
+
+                    await _auth.signOut();
+                    await _googleSignIn.signOut();
                   }
                 },
               ),
