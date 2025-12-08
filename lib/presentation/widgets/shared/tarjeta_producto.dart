@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:unisubasta_udea_v1/presentation/screens/detalle_producto_screen.dart';
 
 class TarjetaProducto extends StatelessWidget {
   final Size size;
@@ -8,6 +7,8 @@ class TarjetaProducto extends StatelessWidget {
   final String nombreProducto;
   final String descripcionProducto;
   final int precioActual;
+  final int productId;
+  final VoidCallback? onTap; // callback externo para manejar el tap
 
   const TarjetaProducto({
     super.key,
@@ -16,6 +17,8 @@ class TarjetaProducto extends StatelessWidget {
     required this.nombreProducto,
     required this.descripcionProducto,
     required this.precioActual,
+    required this.productId,
+    this.onTap,
   });
 
   @override
@@ -23,22 +26,12 @@ class TarjetaProducto extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DetalleProductoScreen(
-                nombre: nombreProducto,
-                descripcion: descripcionProducto,
-                precio: precioActual,
-                imagenes: linkImagen,
-              ),
-            ),
-          );
-        },
+        onTap: onTap, // ya NO hace Navigator aquí, solo llama el callback
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: const Color.fromARGB(157, 158, 158, 158)),
+            border: Border.all(
+              color: const Color.fromARGB(157, 158, 158, 158),
+            ),
             borderRadius: BorderRadius.circular(20),
           ),
           child: ClipRRect(
@@ -50,7 +43,9 @@ class TarjetaProducto extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.network(
-                    linkImagen.first,
+                    linkImagen.isNotEmpty
+                        ? linkImagen.first
+                        : 'https://cdn-icons-png.flaticon.com/512/679/679720.png',
                     fit: BoxFit.cover,
                     width: size.width * 0.45,
                     height: size.width * 0.45,
@@ -65,6 +60,8 @@ class TarjetaProducto extends StatelessWidget {
                       children: [
                         Text(
                           nombreProducto,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -76,7 +73,11 @@ class TarjetaProducto extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Puja Actual: \n \$ ${NumberFormat.currency(locale: 'es_CO', symbol: 'cop', decimalDigits: 0).format(precioActual)}',
+                          'Puja Actual: \n \$ ${NumberFormat.currency(
+                            locale: 'es_CO',
+                            symbol: 'cop',
+                            decimalDigits: 0,
+                          ).format(precioActual)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,

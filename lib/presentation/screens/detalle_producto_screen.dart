@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:unisubasta_udea_v1/data/services/bid_service.dart';
+import 'package:unisubasta_udea_v1/data/models/bid_model.dart';
 
 class DetalleProductoScreen extends StatefulWidget {
   final String nombre;
   final String descripcion;
   final int precio;
+  final int productId;
   final List<String> imagenes;
 
   const DetalleProductoScreen({
@@ -12,6 +17,7 @@ class DetalleProductoScreen extends StatefulWidget {
     required this.nombre,
     required this.descripcion,
     required this.precio,
+    required this.productId,
     required this.imagenes,
   });
 
@@ -23,19 +29,25 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
   late final PageController _controller;
   int _paginaActual = 0;
 
+  final TextEditingController _pujaController = TextEditingController();
+
+  int _precioActual = 0;
+  bool _cargando = false;
+
   @override
   void initState() {
     super.initState();
     _controller = PageController();
+    _precioActual = widget.precio;
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _pujaController.dispose();
     super.dispose();
   }
 
-  // ✅ MISMO VISOR QUE EN EditarEliminarSubastaScreen
   void _mostrarImagenPantallaCompleta(String imageUrl) {
     showDialog(
       context: context,
@@ -45,9 +57,7 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
         child: Stack(
           children: [
             InteractiveViewer(
-              child: Center(
-                child: Image.network(imageUrl),
-              ),
+              child: Center(child: Image.network(imageUrl)),
             ),
             Positioned(
               top: 30,
@@ -61,6 +71,61 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _hacerPuja() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Debes iniciar sesión para pujar.")),
+      );
+      return;
+    }
+
+    if (_pujaController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Ingresa una cantidad válida")),
+      );
+      return;
+    }
+
+    final int? cantidad = int.tryParse(_pujaController.text.trim());
+
+    if (cantidad == null || cantidad <= _precioActual) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("La puja debe ser mayor a $_precioActual")),
+      );
+      return;
+    }
+
+    setState(() => _cargando = true);
+
+    try {
+      final BidModel bid = await BidService.createBid(
+        user: user,
+        productId: widget.productId,
+        amount: cantidad,
+      );
+
+      setState(() {
+        _precioActual = bid.proposedPrice;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Puja realizada con éxito")),
+      );
+
+      _pujaController.clear();
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    } finally {
+      setState(() => _cargando = false);
+    }
   }
 
   @override
@@ -91,15 +156,12 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                         final imageUrl = widget.imagenes[index];
 
                         return GestureDetector(
-                          onTap: () => _mostrarImagenPantallaCompleta(imageUrl),
-                          child: Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                          ),
+                          onTap: () =>
+                              _mostrarImagenPantallaCompleta(imageUrl),
+                          child: Image.network(imageUrl, fit: BoxFit.cover),
                         );
                       },
                     ),
-
                     Positioned(
                       bottom: 10,
                       left: 0,
@@ -109,7 +171,8 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
                         children: List.generate(
                           widget.imagenes.length,
                           (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            margin:
+                                const EdgeInsets.symmetric(horizontal: 4),
                             width: _paginaActual == index ? 10 : 8,
                             height: _paginaActual == index ? 10 : 8,
                             decoration: BoxDecoration(
@@ -139,20 +202,19 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
               const SizedBox(height: 20),
 
               Text(
-                'Precio actual: \$${NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0).format(widget.precio)}',
+                'Precio actual: \$${NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0).format(_precioActual)}',
                 style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                    fontSize: 20, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 30),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: TextField(
+                  controller: _pujaController,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Tu puja',
                     prefixText: '\$ ',
                     border: OutlineInputBorder(),
@@ -163,21 +225,25 @@ class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
               const SizedBox(height: 20),
 
               ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Has realizado una puja!')),
-                  );
-                },
+                onPressed: _cargando ? null : _hacerPuja,
                 style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 50,
-                    vertical: 15,
-                  ),
+                      horizontal: 50, vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Pujar'),
+                child: _cargando
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Pujar',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ],
           ),

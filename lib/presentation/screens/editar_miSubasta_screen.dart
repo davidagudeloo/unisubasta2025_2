@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 import 'package:unisubasta_udea_v1/data/services/products_service.dart';
+import 'package:unisubasta_udea_v1/data/services/bid_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EditarEliminarSubastaScreen extends StatefulWidget {
   final int productId;
@@ -36,12 +38,30 @@ class _EditarEliminarSubastaScreenState
   final List<File?> _nuevasImagenes = [null, null, null];
 
   bool _guardando = false;
+  bool _tienePujas = false;
 
   @override
   void initState() {
     super.initState();
     _controller = PageController();
     _precioController.text = widget.precio.toString();
+    verificarPujas();
+  }
+
+  Future<void> verificarPujas() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final bids =
+          await BidService.getBidsByProduct(user: user, productId: widget.productId);
+
+      if (bids.isNotEmpty) {
+        setState(() => _tienePujas = true);
+      }
+    } catch (_) {
+      setState(() => _tienePujas = false);
+    }
   }
 
   Future<void> _seleccionarImagen(int index) async {
@@ -52,15 +72,17 @@ class _EditarEliminarSubastaScreenState
   }
 
   Future<void> _guardarCambios() async {
-    if (_precioController.text.isEmpty) return;
+    if (!_tienePujas && _precioController.text.isEmpty) return;
 
     setState(() => _guardando = true);
 
     try {
-      await ProductsService.updateProduct(
-        productId: widget.productId,
-        nuevoPrecio: double.parse(_precioController.text),
-      );
+      if (!_tienePujas) {
+        await ProductsService.updateProduct(
+          productId: widget.productId,
+          nuevoPrecio: double.parse(_precioController.text),
+        );
+      }
 
       for (final img in _nuevasImagenes) {
         if (img != null) {
@@ -78,7 +100,7 @@ class _EditarEliminarSubastaScreenState
         const SnackBar(content: Text('Subasta actualizada correctamente')),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       setState(() => _guardando = false);
 
@@ -114,7 +136,7 @@ class _EditarEliminarSubastaScreenState
       await ProductsService.deleteProductWithImages(widget.productId);
       if (!mounted) return;
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     }
   }
 
@@ -164,7 +186,6 @@ class _EditarEliminarSubastaScreenState
                       onPageChanged: (i) => setState(() => _paginaActual = i),
                       itemBuilder: (context, index) {
                         final imageUrl = widget.imagenes[index];
-
                         return GestureDetector(
                           onTap: () => _mostrarImagenFullscreen(imageUrl),
                           child: Image.network(
@@ -207,15 +228,18 @@ class _EditarEliminarSubastaScreenState
 
               const SizedBox(height: 20),
 
-              TextField(
-                controller: _precioController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Nuevo precio',
-                  prefixText: '\$ ',
-                  border: OutlineInputBorder(),
-                ),
-              ),
+              if (!_tienePujas)
+                TextField(
+                  controller: _precioController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Nuevo precio',
+                    prefixText: '\$ ',
+                    border: OutlineInputBorder(),
+                  ),
+                )
+              else
+                const SizedBox(),
 
               const SizedBox(height: 20),
 

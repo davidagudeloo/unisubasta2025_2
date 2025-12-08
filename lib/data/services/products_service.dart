@@ -3,13 +3,40 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:unisubasta_udea_v1/data/models/product_model.dart';
+
 class ProductsService {
   static const String baseUrl = 'http://192.168.30.114:8080';
 
-  /// ============================
-  /// OBTENER PRODUCTOS PAGINADOS
-  /// ============================
-  static Future<List<dynamic>> getProducts({
+  // ============================================================
+  // Obtener ID REAL del usuario logueado desde backend
+  // ============================================================
+  static Future<int?> getMyUserId() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final token = await user?.getIdToken();
+
+    final url = Uri.parse('$baseUrl/api/users/me');
+
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data["idUsuario"]; // ← este es el ID real de PostgreSQL
+    }
+
+    return null;
+  }
+
+  // ============================================================
+  // Obtener todos los productos (Paginados)
+  // ============================================================
+  static Future<List<ProductModel>> getProducts({
     int page = 0,
     int size = 20,
   }) async {
@@ -28,16 +55,17 @@ class ProductsService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['content'];
+      final List<dynamic> content = data['content'];
+      return content.map((e) => ProductModel.fromJson(e)).toList();
     } else {
       throw Exception('Error al cargar productos');
     }
   }
 
-  /// ==========================================
-  /// OBTENER PRODUCTOS PUBLICADOS POR UN USUARIO
-  /// ==========================================
-  static Future<List<dynamic>> getProductsBySeller(int sellerId) async {
+  // ============================================================
+  // Obtener productos por vendedor
+  // ============================================================
+  static Future<List<ProductModel>> getProductsBySeller(int sellerId) async {
     final user = FirebaseAuth.instance.currentUser;
     final token = await user?.getIdToken();
 
@@ -52,15 +80,16 @@ class ProductsService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final List<dynamic> list = jsonDecode(response.body);
+      return list.map((e) => ProductModel.fromJson(e)).toList();
     } else {
       throw Exception('Error al cargar productos del vendedor');
     }
   }
 
-  /// ============================
-  /// CREAR PRODUCTO
-  /// ============================
+  // ============================================================
+  // Crear producto (ASIGNANDO EL SELLER ID REAL)
+  // ============================================================
   static Future<int> createProduct({
     required String nombre,
     required String descripcion,
@@ -71,11 +100,14 @@ class ProductsService {
     required int categoryId,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      throw Exception('Usuario no autenticado');
-    }
+    if (user == null) throw Exception('Usuario no autenticado');
 
     final token = await user.getIdToken();
+
+    // Obtener el ID real del backend
+    final myUserId = await getMyUserId();
+    if (myUserId == null) throw Exception("No fue posible obtener el ID del usuario.");
+
     final url = Uri.parse('$baseUrl/api/products');
 
     final body = {
@@ -83,10 +115,11 @@ class ProductsService {
       "name": nombre,
       "description": descripcion,
       "initialPrice": precioMinimo.toInt(),
+      "currentPrice": precioMinimo.toInt(),
       "openingDate": openingDate.toUtc().toIso8601String(),
       "closingDate": closingDate.toUtc().toIso8601String(),
       "timerId": timerId,
-      "sellerId": 1,
+      "sellerId": myUserId, // ← AQUÍ EL CAMBIO IMPORTANTE
       "buyerId": null,
       "productStateId": 1,
       "availabilityStateId": 1,
@@ -110,9 +143,9 @@ class ProductsService {
     }
   }
 
-  /// ============================
-  /// ACTUALIZAR PRODUCTO (PATCH)
-  /// ============================
+  // ============================================================
+  // Actualizar producto
+  // ============================================================
   static Future<void> updateProduct({
     required int productId,
     required double nuevoPrecio,
@@ -124,6 +157,7 @@ class ProductsService {
 
     final body = {
       "initialPrice": nuevoPrecio.toInt(),
+      "currentPrice": nuevoPrecio.toInt(),
     };
 
     final response = await http.patch(
@@ -140,9 +174,9 @@ class ProductsService {
     }
   }
 
-  /// ============================
-  /// SUBIR IMAGEN AL PRODUCTO
-  /// ============================
+  // ============================================================
+  // Subir imagen
+  // ============================================================
   static Future<void> uploadImage({
     required File image,
     required int productId,
@@ -165,9 +199,9 @@ class ProductsService {
     }
   }
 
-  /// ==================================
-  /// OBTENER IMÁGENES POR PRODUCTO ID
-  /// ==================================
+  // ============================================================
+  // Obtener imágenes por producto
+  // ============================================================
   static Future<List<dynamic>> getImagesByProduct(int productId) async {
     final url = Uri.parse('$baseUrl/api/products/images/by-product/$productId');
 
@@ -180,16 +214,16 @@ class ProductsService {
     }
   }
 
-  /// ==================================
-  /// OBTENER URL FÍSICA DE UNA IMAGEN
-  /// ==================================
+  // ============================================================
+  // Obtener URL de imagen
+  // ============================================================
   static String getImageUrlById(int imageId) {
     return '$baseUrl/api/products/images/$imageId';
   }
 
-  /// ============================
-  /// ELIMINAR UNA IMAGEN POR ID
-  /// ============================
+  // ============================================================
+  // Eliminar imagen
+  // ============================================================
   static Future<void> deleteImageById(int imageId) async {
     final user = FirebaseAuth.instance.currentUser;
     final token = await user?.getIdToken();
@@ -208,9 +242,9 @@ class ProductsService {
     }
   }
 
-  /// ============================
-  /// ELIMINAR PRODUCTO POR ID
-  /// ============================
+  // ============================================================
+  // Eliminar producto
+  // ============================================================
   static Future<void> deleteProductById(int productId) async {
     final user = FirebaseAuth.instance.currentUser;
     final token = await user?.getIdToken();
@@ -229,9 +263,9 @@ class ProductsService {
     }
   }
 
-  /// =================================================
-  /// ELIMINAR PRODUCTO COMPLETO (IMÁGENES + PRODUCTO)
-  /// =================================================
+  // ============================================================
+  // Eliminar producto + imágenes
+  // ============================================================
   static Future<void> deleteProductWithImages(int productId) async {
     final images = await getImagesByProduct(productId);
 

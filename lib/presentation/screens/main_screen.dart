@@ -21,13 +21,16 @@ class _MainScreenState extends State<MainScreen> {
   int _current_index = 0;
 
   late List<Widget> _pantallas;
+
   @override
   void initState() {
     super.initState();
+
+    // Muy importante: ahora MisSubastasScreen usará el uid interno
     _pantallas = [
       const InicioScreen(),
       const PujarScreen(),
-      const MisSubastasScreen(),
+      const MisSubastasScreen(), 
       PerfilScreen(user: widget.user),
     ];
   }
@@ -37,6 +40,7 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: const TituloAppBar(),
       body: _pantallas[_current_index],
+
       floatingActionButton: _current_index == 2
           ? FloatingActionButton(
               onPressed: () {
@@ -52,6 +56,7 @@ class _MainScreenState extends State<MainScreen> {
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
+
       bottomNavigationBar: BottomNavigationBar(
         elevation: 10,
         currentIndex: _current_index,

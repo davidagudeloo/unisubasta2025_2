@@ -23,8 +23,8 @@ class _MisSubastasScreenState extends State<MisSubastasScreen> {
   }
 
   Future<List<ProductModel>> cargarMisProductos() async {
-    final data = await ProductsService.getProductsBySeller(sellerId);
-    return data.map((e) => ProductModel.fromJson(e)).toList();
+    return await ProductsService.getProductsBySeller(sellerId);
+    
   }
 
   Future<List<String>> cargarImagenesProducto(int productId) async {

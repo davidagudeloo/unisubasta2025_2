@@ -1,8 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_producto.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
 import 'package:unisubasta_udea_v1/data/services/products_service.dart';
 import 'package:unisubasta_udea_v1/data/models/product_model.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/detalle_producto_screen.dart';
+import 'package:unisubasta_udea_v1/presentation/screens/editar_miSubasta_screen.dart';
 
 class InicioScreen extends StatefulWidget {
   const InicioScreen({super.key});
@@ -21,27 +24,21 @@ class _InicioScreenState extends State<InicioScreen> {
   }
 
   Future<List<ProductModel>> cargarProductos() async {
-    final data = await ProductsService.getProducts();
-    return data.map((e) => ProductModel.fromJson(e)).toList();
+    return await ProductsService.getProducts();
   }
 
-  // SOLO USA EL SERVICE (NADA DE HTTP ACÁ)
   Future<List<String>> cargarImagenesProducto(int productId) async {
     try {
       final images = await ProductsService.getImagesByProduct(productId);
 
       if (images.isNotEmpty) {
         return images
-            .map<String>(
-              (img) => ProductsService.getImageUrlById(img['id']),
-            )
+            .map<String>((img) => ProductsService.getImageUrlById(img['id']))
             .toList();
       }
     } catch (_) {}
 
-    return [
-      'https://cdn-icons-png.flaticon.com/512/679/679720.png',
-    ];
+    return ['https://cdn-icons-png.flaticon.com/512/679/679720.png'];
   }
 
   @override
@@ -75,7 +72,7 @@ class _InicioScreenState extends State<InicioScreen> {
                   );
                 }
 
-                final products = snapshot.data!;
+                final products = snapshot.data ?? [];
 
                 if (products.isEmpty) {
                   return const Padding(
@@ -93,9 +90,7 @@ class _InicioScreenState extends State<InicioScreen> {
                       future: cargarImagenesProducto(product.id),
                       builder: (context, imageSnapshot) {
                         final imagenes = imageSnapshot.data ??
-                            [
-                              'https://cdn-icons-png.flaticon.com/512/679/679720.png',
-                            ];
+                            ['https://cdn-icons-png.flaticon.com/512/679/679720.png'];
 
                         return TarjetaProducto(
                           size: size,
@@ -103,6 +98,52 @@ class _InicioScreenState extends State<InicioScreen> {
                           nombreProducto: product.name,
                           descripcionProducto: product.description,
                           precioActual: product.initialPrice.toInt(),
+                          productId: product.id,
+
+                          // LÓGICA CORRECTA AQUÍ
+                          onTap: () async {
+                            final user = FirebaseAuth.instance.currentUser;
+                            if (user == null) return;
+
+                            // Obtener ID real de PostgreSQL
+                            final myUserId = await ProductsService.getMyUserId();
+
+                            if (myUserId != null &&
+                                product.sellerId == myUserId) {
+                              //  ES MI PRODUCTO → EDITAR
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditarEliminarSubastaScreen(
+                                    productId: product.id,
+                                    nombre: product.name,
+                                    descripcion: product.description,
+                                    precio: product.initialPrice.toInt(),
+                                    imagenes: imagenes,
+                                  ),
+                                ),
+                              );
+
+                              // Recargar
+                              setState(() {
+                                _productsFuture = cargarProductos();
+                              });
+                            } else {
+                              // ✔ NO ES MÍO → PUJAR
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => DetalleProductoScreen(
+                                    nombre: product.name,
+                                    descripcion: product.description,
+                                    precio: product.initialPrice.toInt(),
+                                    productId: product.id,
+                                    imagenes: imagenes,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
                         );
                       },
                     );
