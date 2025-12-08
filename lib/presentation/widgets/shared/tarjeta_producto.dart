@@ -85,7 +85,7 @@ class TarjetaProducto extends StatelessWidget {
                         ),
                         Text(
                           'Puja Actual: \n \$ ${NumberFormat.currency(locale: 'es_CO', symbol: 'cop', decimalDigits: 0).format(precioActual)}',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                           ),

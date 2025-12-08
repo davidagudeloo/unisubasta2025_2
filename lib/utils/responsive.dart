@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class Responsive {
   //final Size size = MediaQuery.of(context).size;

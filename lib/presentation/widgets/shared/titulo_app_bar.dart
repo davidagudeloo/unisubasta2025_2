@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 
 class TituloAppBar extends StatelessWidget implements PreferredSizeWidget {
   const TituloAppBar({super.key});

@@ -39,37 +39,58 @@ class _HelloScreenState extends State<HelloScreen> {
   }
 
   Future<bool> enviarUsuarioAlBackend(User user) async {
-    try {
-      final token = await user.getIdToken();
+  try {
+    final token = await user.getIdToken();
+    final url = Uri.parse('http://192.168.30.114:8080/api/users/me');
 
-      final url =
-          Uri.parse('http://192.168.30.114:8080/api/users/me');
+    // 1. PRIMERO VALIDAMOS SI YA EXISTE
+    final getResponse = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
 
-      final response = await http.patch(
+    // 2. SI YA EXISTE → NO SE MODIFICA NADA
+    if (getResponse.statusCode == 200) {
+      debugPrint('Usuario ya existe en el backend');
+      return true;
+    }
+
+    // 3. SI NO EXISTE → SE CREA CON VALORES POR DEFECTO
+    if (getResponse.statusCode == 404) {
+      final patchResponse = await http.patch(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          "descripcionPersonal": "Usuario nuevo",
+          "descripcionPersonal": "Hola, soy un usuario de Unisubasta",
           "urlFotoPerfil": user.photoURL ?? ""
         }),
       );
 
-      if (response.statusCode == 200) {
-        debugPrint('Usuario permitido por el backend');
+      if (patchResponse.statusCode == 200) {
+        debugPrint('Usuario creado en el backend');
         return true;
       } else {
-        debugPrint('Backend rechazó el usuario: ${response.statusCode}');
-        debugPrint(response.body);
+        debugPrint('Error creando usuario: ${patchResponse.statusCode}');
+        debugPrint(patchResponse.body);
         return false;
       }
-    } catch (e) {
-      debugPrint('Error de conexión con el backend: $e');
-      return false;
     }
+
+    // 4. CUALQUIER OTRO ERROR
+    debugPrint('Respuesta inesperada del backend: ${getResponse.statusCode}');
+    return false;
+
+  } catch (e) {
+    debugPrint('Error de conexión con el backend: $e');
+    return false;
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -139,7 +160,7 @@ class _HelloScreenState extends State<HelloScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          "Solo correos institucionales pueden ingresar",
+                          "Solo correos institucionales de la UdeA pueden ingresar",
                         ),
                       ),
                     );

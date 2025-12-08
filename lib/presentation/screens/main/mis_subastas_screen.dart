@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_mis_productos.dart';
-import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_producto.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
 
 class MisSubastasScreen extends StatelessWidget {
