@@ -112,7 +112,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
         const SnackBar(content: Text('Producto publicado correctamente')),
       );
 
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     } catch (e) {
       setState(() => _publicando = false);
 
@@ -228,7 +228,7 @@ class _RegistroProductoScreenState extends State<RegistroProductoScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton.small(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => Navigator.pop(context, true),
         backgroundColor: AppColors.verdeClaro.withAlpha(200),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: const Text('X', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
@@ -306,3 +306,4 @@ class CustomTextForm extends StatelessWidget {
     );
   }
 }
+

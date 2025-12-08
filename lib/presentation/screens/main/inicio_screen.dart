@@ -26,17 +26,22 @@ class _InicioScreenState extends State<InicioScreen> {
   }
 
   // SOLO USA EL SERVICE (NADA DE HTTP ACÁ)
-  Future<String?> cargarPrimeraImagen(int productId) async {
+  Future<List<String>> cargarImagenesProducto(int productId) async {
     try {
       final images = await ProductsService.getImagesByProduct(productId);
 
       if (images.isNotEmpty) {
-        final imageId = images.first['id'];
-        return ProductsService.getImageUrlById(imageId);
+        return images
+            .map<String>(
+              (img) => ProductsService.getImageUrlById(img['id']),
+            )
+            .toList();
       }
     } catch (_) {}
 
-    return null;
+    return [
+      'https://cdn-icons-png.flaticon.com/512/679/679720.png',
+    ];
   }
 
   @override
@@ -84,15 +89,17 @@ class _InicioScreenState extends State<InicioScreen> {
                   runSpacing: 10,
                   alignment: WrapAlignment.spaceBetween,
                   children: products.map((product) {
-                    return FutureBuilder<String?>(
-                      future: cargarPrimeraImagen(product.id),
+                    return FutureBuilder<List<String>>(
+                      future: cargarImagenesProducto(product.id),
                       builder: (context, imageSnapshot) {
-                        final imageUrl = imageSnapshot.data ??
-                            'https://cdn-icons-png.flaticon.com/512/679/679720.png';
+                        final imagenes = imageSnapshot.data ??
+                            [
+                              'https://cdn-icons-png.flaticon.com/512/679/679720.png',
+                            ];
 
                         return TarjetaProducto(
                           size: size,
-                          linkImagen: imageUrl,
+                          linkImagen: imagenes,
                           nombreProducto: product.name,
                           descripcionProducto: product.description,
                           precioActual: product.initialPrice.toInt(),

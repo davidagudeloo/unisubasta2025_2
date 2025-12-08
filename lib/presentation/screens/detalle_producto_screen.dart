@@ -1,28 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class DetalleProductoScreen extends StatelessWidget {
+class DetalleProductoScreen extends StatefulWidget {
   final String nombre;
   final String descripcion;
   final int precio;
-  final String imagen;
+  final List<String> imagenes;
 
   const DetalleProductoScreen({
     super.key,
     required this.nombre,
     required this.descripcion,
     required this.precio,
-    required this.imagen,
+    required this.imagenes,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final controller = PageController();
+  State<DetalleProductoScreen> createState() => _DetalleProductoScreenState();
+}
 
+class _DetalleProductoScreenState extends State<DetalleProductoScreen> {
+  late final PageController _controller;
+  int _paginaActual = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PageController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // ✅ MISMO VISOR QUE EN EditarEliminarSubastaScreen
+  void _mostrarImagenPantallaCompleta(String imageUrl) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.black,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            InteractiveViewer(
+              child: Center(
+                child: Image.network(imageUrl),
+              ),
+            ),
+            Positioned(
+              top: 30,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          nombre,
+          widget.nombre,
           style: const TextStyle(fontWeight: FontWeight.w500),
         ),
       ),
@@ -31,34 +77,77 @@ class DetalleProductoScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           child: Column(
             children: [
-              // Carrusel de imágenes (puedes tener varias)
               SizedBox(
                 height: 300,
-                child: PageView(
-                  controller: controller,
+                child: Stack(
                   children: [
-                    Image.network(imagen, fit: BoxFit.cover),
-                    // Image.network(imagen, fit: BoxFit.cover),
-                    // aquí podrías añadir más imágenes si las tienes
+                    PageView.builder(
+                      controller: _controller,
+                      itemCount: widget.imagenes.length,
+                      onPageChanged: (index) {
+                        setState(() => _paginaActual = index);
+                      },
+                      itemBuilder: (context, index) {
+                        final imageUrl = widget.imagenes[index];
+
+                        return GestureDetector(
+                          onTap: () => _mostrarImagenPantallaCompleta(imageUrl),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                          ),
+                        );
+                      },
+                    ),
+
+                    Positioned(
+                      bottom: 10,
+                      left: 0,
+                      right: 0,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          widget.imagenes.length,
+                          (index) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: _paginaActual == index ? 10 : 8,
+                            height: _paginaActual == index ? 10 : 8,
+                            decoration: BoxDecoration(
+                              color: _paginaActual == index
+                                  ? Colors.white
+                                  : Colors.white54,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
+
               const SizedBox(height: 10),
+
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text(descripcion, style: const TextStyle(fontSize: 16)),
+                child: Text(
+                  widget.descripcion,
+                  style: const TextStyle(fontSize: 16),
+                ),
               ),
+
               const SizedBox(height: 20),
+
               Text(
-                'Precio actual: \$${NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0).format(precio)}',
+                'Precio actual: \$${NumberFormat.currency(locale: 'es_CO', symbol: '', decimalDigits: 0).format(widget.precio)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+
               const SizedBox(height: 30),
 
-              // Campo para ingresar puja
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: TextField(
@@ -70,7 +159,9 @@ class DetalleProductoScreen extends StatelessWidget {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
+
               ElevatedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(

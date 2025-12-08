@@ -7,6 +7,8 @@ class TarjetaMisProductos extends StatelessWidget {
   final String nombreProducto;
   final String descripcionProducto;
   final int precioActual;
+  final VoidCallback? onTap;
+
   const TarjetaMisProductos({
     super.key,
     required this.size,
@@ -14,6 +16,7 @@ class TarjetaMisProductos extends StatelessWidget {
     required this.nombreProducto,
     required this.descripcionProducto,
     required this.precioActual,
+    this.onTap,
   });
 
   @override
@@ -21,18 +24,12 @@ class TarjetaMisProductos extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Esta funcionalidad estará disponible muy pronto...',
-              ),
-            ),
-          );
-        },
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
         child: Container(
           decoration: BoxDecoration(
-            border: Border.all(color: const Color.fromARGB(157, 158, 158, 158)),
+            border:
+                Border.all(color: const Color.fromARGB(157, 158, 158, 158)),
             borderRadius: BorderRadius.circular(20),
           ),
           child: ClipRRect(
@@ -53,8 +50,6 @@ class TarjetaMisProductos extends StatelessWidget {
                     padding: const EdgeInsets.all(5),
                     width: double.infinity,
                     height: 150,
-                    // color: const Color.fromARGB(153, 230, 231, 233),
-                    // color: const Color.fromARGB(255, 255, 255, 255),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,

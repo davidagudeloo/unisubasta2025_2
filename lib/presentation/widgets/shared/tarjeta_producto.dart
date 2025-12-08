@@ -4,10 +4,11 @@ import 'package:unisubasta_udea_v1/presentation/screens/detalle_producto_screen.
 
 class TarjetaProducto extends StatelessWidget {
   final Size size;
-  final String linkImagen;
+  final List<String> linkImagen;
   final String nombreProducto;
   final String descripcionProducto;
   final int precioActual;
+
   const TarjetaProducto({
     super.key,
     required this.size,
@@ -30,17 +31,10 @@ class TarjetaProducto extends StatelessWidget {
                 nombre: nombreProducto,
                 descripcion: descripcionProducto,
                 precio: precioActual,
-                imagen: linkImagen,
+                imagenes: linkImagen,
               ),
             ),
           );
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   const SnackBar(
-          //     content: Text(
-          //       'Esta funcionalidad estará disponible muy pronto...',
-          //     ),
-          //   ),
-          // );
         },
         child: Container(
           decoration: BoxDecoration(
@@ -56,7 +50,7 @@ class TarjetaProducto extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.network(
-                    linkImagen,
+                    linkImagen.first,
                     fit: BoxFit.cover,
                     width: size.width * 0.45,
                     height: size.width * 0.45,
@@ -65,8 +59,6 @@ class TarjetaProducto extends StatelessWidget {
                     padding: const EdgeInsets.all(5),
                     width: double.infinity,
                     height: 110,
-                    // color: const Color.fromARGB(153, 230, 231, 233),
-                    // color: const Color.fromARGB(255, 255, 255, 255),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       crossAxisAlignment: CrossAxisAlignment.start,
