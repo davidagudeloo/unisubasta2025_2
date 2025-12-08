@@ -28,24 +28,18 @@ class _PujarScreenState extends State<PujarScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception("Usuario no autenticado");
 
-    // 1. Obtener todas mis pujas
+    // Obtener todas mis pujas
     List<BidModel> bids = await BidService.getMyBids(user);
 
-    // ================================================================
-    // 2. ELIMINAR DUPLICADOS (quedarse solo con la ÚLTIMA puja por producto)
-    // ================================================================
+    // Filtrar para dejar solo la última puja por producto
     final Map<int, BidModel> lastBidByProduct = {};
-
     for (final bid in bids) {
       lastBidByProduct[bid.productId] = bid;
     }
-
-    // Convertimos el mapa en lista final
     final List<BidModel> filteredBids = lastBidByProduct.values.toList();
 
-    // 3. Para cada puja obtenemos el producto e imágenes
+    // Obtener producto e imágenes de cada puja
     List<_PujaConProducto> result = [];
-
     for (final b in filteredBids) {
       final ProductModel product =
           await BidService.getProductById(user: user, productId: b.productId);
@@ -118,12 +112,16 @@ class _PujarScreenState extends State<PujarScreen> {
                   children: pujas.map((puja) {
                     final product = puja.product;
 
+                    // Corrección del precio: usar currentPrice si existe, si no initialPrice
+                    final int precioFinal =
+                        (product.currentPrice ?? product.initialPrice).toInt();
+
                     return TarjetaProducto(
                       size: size,
                       linkImagen: puja.imagenes,
                       nombreProducto: product.name,
                       descripcionProducto: product.description,
-                      precioActual: product.currentPrice.toInt(),
+                      precioActual: precioFinal,
                       productId: product.id,
                       onTap: () async {
                         await Navigator.push(
@@ -132,7 +130,7 @@ class _PujarScreenState extends State<PujarScreen> {
                             builder: (_) => DetalleProductoScreen(
                               nombre: product.name,
                               descripcion: product.description,
-                              precio: product.currentPrice.toInt(),
+                              precio: precioFinal,
                               productId: product.id,
                               imagenes: puja.imagenes,
                             ),

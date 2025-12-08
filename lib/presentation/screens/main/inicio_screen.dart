@@ -97,20 +97,22 @@ class _InicioScreenState extends State<InicioScreen> {
                           linkImagen: imagenes,
                           nombreProducto: product.name,
                           descripcionProducto: product.description,
-                          precioActual: product.initialPrice.toInt(),
+
+                          // CORRECCIÓN IMPORTANTE:
+                          // Mostrar el precio actual, no el inicial
+                          precioActual: product.currentPrice.toInt(),
+
                           productId: product.id,
 
-                          // LÓGICA CORRECTA AQUÍ
                           onTap: () async {
                             final user = FirebaseAuth.instance.currentUser;
                             if (user == null) return;
 
-                            // Obtener ID real de PostgreSQL
                             final myUserId = await ProductsService.getMyUserId();
 
                             if (myUserId != null &&
                                 product.sellerId == myUserId) {
-                              //  ES MI PRODUCTO → EDITAR
+
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -118,30 +120,41 @@ class _InicioScreenState extends State<InicioScreen> {
                                     productId: product.id,
                                     nombre: product.name,
                                     descripcion: product.description,
-                                    precio: product.initialPrice.toInt(),
+
+                                    // También corregido aquí
+                                    precio: product.currentPrice.toInt(),
+
                                     imagenes: imagenes,
                                   ),
                                 ),
                               );
 
-                              // Recargar
                               setState(() {
                                 _productsFuture = cargarProductos();
                               });
                             } else {
-                              // ✔ NO ES MÍO → PUJAR
-                              await Navigator.push(
+
+                              final refresh = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => DetalleProductoScreen(
                                     nombre: product.name,
                                     descripcion: product.description,
-                                    precio: product.initialPrice.toInt(),
+
+                                    // También corregido aquí
+                                    precio: product.currentPrice.toInt(),
+
                                     productId: product.id,
                                     imagenes: imagenes,
                                   ),
                                 ),
                               );
+
+                              if (refresh == true) {
+                                setState(() {
+                                  _productsFuture = cargarProductos();
+                                });
+                              }
                             }
                           },
                         );

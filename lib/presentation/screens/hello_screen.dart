@@ -19,6 +19,10 @@ class _HelloScreenState extends State<HelloScreen> {
 
   Future<User?> _signInWithGoogle() async {
     try {
+      // Cerrar sesiones previas para permitir seleccionar otra cuenta
+      await _auth.signOut();
+      await _googleSignIn.signOut();
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
 
@@ -39,58 +43,44 @@ class _HelloScreenState extends State<HelloScreen> {
   }
 
   Future<bool> enviarUsuarioAlBackend(User user) async {
-  try {
-    final token = await user.getIdToken();
-    final url = Uri.parse('http://192.168.30.114:8080/api/users/me');
+    try {
+      final token = await user.getIdToken();
+      final url = Uri.parse('http://192.168.30.114:8080/api/users/me');
 
-    // 1. PRIMERO VALIDAMOS SI YA EXISTE
-    final getResponse = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    // 2. SI YA EXISTE → NO SE MODIFICA NADA
-    if (getResponse.statusCode == 200) {
-      debugPrint('Usuario ya existe en el backend');
-      return true;
-    }
-
-    // 3. SI NO EXISTE → SE CREA CON VALORES POR DEFECTO
-    if (getResponse.statusCode == 404) {
-      final patchResponse = await http.patch(
+      // Consultar si ya existe
+      final getResponse = await http.get(
         url,
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({
-          "descripcionPersonal": "Hola, soy un usuario de Unisubasta",
-          "urlFotoPerfil": user.photoURL ?? ""
-        }),
       );
 
-      if (patchResponse.statusCode == 200) {
-        debugPrint('Usuario creado en el backend');
+      if (getResponse.statusCode == 200) {
         return true;
-      } else {
-        debugPrint('Error creando usuario: ${patchResponse.statusCode}');
-        debugPrint(patchResponse.body);
-        return false;
       }
+
+      if (getResponse.statusCode == 404) {
+        final patchResponse = await http.patch(
+          url,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+          body: jsonEncode({
+            "descripcionPersonal": "Hola, soy un usuario de Unisubasta",
+            "urlFotoPerfil": user.photoURL ?? ""
+          }),
+        );
+
+        return patchResponse.statusCode == 200;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint('Error de conexión con el backend: $e');
+      return false;
     }
-
-    // 4. CUALQUIER OTRO ERROR
-    debugPrint('Respuesta inesperada del backend: ${getResponse.statusCode}');
-    return false;
-
-  } catch (e) {
-    debugPrint('Error de conexión con el backend: $e');
-    return false;
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -147,6 +137,20 @@ class _HelloScreenState extends State<HelloScreen> {
                   final user = await _signInWithGoogle();
                   if (user == null) return;
 
+                  // Validar dominio UdeA antes de llamar backend
+                  if (!user.email!.endsWith("@udea.edu.co")) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Solo correos institucionales de la UdeA pueden ingresar"),
+                      ),
+                    );
+
+                    await _auth.signOut();
+                    await _googleSignIn.signOut();
+                    return;
+                  }
+
                   final permitido = await enviarUsuarioAlBackend(user);
 
                   if (permitido) {
@@ -160,7 +164,7 @@ class _HelloScreenState extends State<HelloScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          "Solo correos institucionales de la UdeA pueden ingresar",
+                          "Hubo un error registrando el usuario en los servidores",
                         ),
                       ),
                     );
