@@ -5,6 +5,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/chat/chat_screen.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/hello_screen.dart';
 import 'package:unisubasta_udea_v1/data/services/user_service.dart';
+import 'package:unisubasta_udea_v1/data/services/products_service.dart';
+import 'package:unisubasta_udea_v1/data/services/bid_service.dart';
 
 class PerfilScreen extends StatefulWidget {
   final User user;
@@ -17,14 +19,24 @@ class PerfilScreen extends StatefulWidget {
 class _PerfilScreenState extends State<PerfilScreen> {
   Map<String, dynamic>? perfil;
 
+  int subastasCreadas = 0;
+  int pujasRealizadas = 0;
+  int subastasGanadas = 0; // lo dejas en 0 como pediste
+
+  bool cargandoContadores = true;
+
   User get user => widget.user;
 
   @override
   void initState() {
     super.initState();
     cargarPerfil();
+    cargarContadores();
   }
 
+  // ===========================
+  // CARGA DE DESCRIPCIÓN Y PERFIL
+  // ===========================
   Future<void> cargarPerfil() async {
     try {
       final data = await UserService.getUserProfile(user);
@@ -46,10 +58,40 @@ class _PerfilScreenState extends State<PerfilScreen> {
     }
   }
 
+  // ===========================
+  // NUEVA LÓGICA: SUBASTAS Y PUJAS
+  // ===========================
+  Future<void> cargarContadores() async {
+    try {
+      final authUser = FirebaseAuth.instance.currentUser;
+      if (authUser == null) return;
+
+      final sellerId = await ProductsService.getMyUserId();
+      if (sellerId == null) return;
+
+      // Subastas creadas
+      final productos = await ProductsService.getProductsBySeller(sellerId);
+      subastasCreadas = productos.length;
+
+      // Pujas realizadas
+      final bids = await BidService.getMyBids(authUser);
+      pujasRealizadas = bids.length;
+
+      setState(() {
+        cargandoContadores = false;
+      });
+    } catch (e) {
+      debugPrint("Error cargando contadores: $e");
+      setState(() {
+        cargandoContadores = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: perfil == null
+      child: perfil == null || cargandoContadores
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -99,21 +141,21 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
                   const SizedBox(height: 20),
 
-                  const Row(
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       BloqueCantidadSubastas(
-                        numero: 12,
+                        numero: subastasCreadas,
                         texto1: 'Subastas',
                         texto2: 'creadas',
                       ),
                       BloqueCantidadSubastas(
-                        numero: 34,
+                        numero: pujasRealizadas,
                         texto1: 'Pujas',
                         texto2: 'realizadas',
                       ),
                       BloqueCantidadSubastas(
-                        numero: 8,
+                        numero: subastasGanadas,
                         texto1: 'Subastas',
                         texto2: 'ganadas',
                       ),
