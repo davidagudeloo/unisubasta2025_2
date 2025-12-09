@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_mis_productos.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
+
 import 'package:unisubasta_udea_v1/data/services/products_service.dart';
+import 'package:unisubasta_udea_v1/data/services/user_service.dart';
+
 import 'package:unisubasta_udea_v1/data/models/product_model.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/editar_miSubasta_screen.dart';
 
@@ -14,17 +19,41 @@ class MisSubastasScreen extends StatefulWidget {
 
 class _MisSubastasScreenState extends State<MisSubastasScreen> {
   late Future<List<ProductModel>> _productsFuture;
-  final int sellerId = 1;
+
+  int? sellerId; // AHORA NO ESTÁ QUEMADO
 
   @override
   void initState() {
     super.initState();
-    _productsFuture = cargarMisProductos();
+    _cargarUsuarioYProductos();
   }
 
+  // ============================================================
+  //   Obtener ID del usuario autenticado (desde backend)
+  // ============================================================
+  Future<void> _cargarUsuarioYProductos() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser!;
+      final perfil = await UserService.getUserProfile(user);
+
+      sellerId = perfil["idUsuario"]; // 🔥 ID REAL DEL USUARIO
+
+      setState(() {
+        _productsFuture = cargarMisProductos();
+      });
+
+    } catch (e) {
+      debugPrint("Error obteniendo ID del usuario: $e");
+    }
+  }
+
+  // ============================================================
+  //    Cargar productos del vendedor REAL
+  // ============================================================
   Future<List<ProductModel>> cargarMisProductos() async {
-    return await ProductsService.getProductsBySeller(sellerId);
-    
+    if (sellerId == null) return [];
+
+    return await ProductsService.getProductsBySeller(sellerId!);
   }
 
   Future<List<String>> cargarImagenesProducto(int productId) async {
@@ -41,13 +70,14 @@ class _MisSubastasScreenState extends State<MisSubastasScreen> {
     });
   }
 
+  // ============================================================
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
 
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: () async => _recargarPantalla(), 
+        onRefresh: () async => _recargarPantalla(),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -58,80 +88,84 @@ class _MisSubastasScreenState extends State<MisSubastasScreen> {
                 child: TituloSeccion(texto: '  Mis subastas'),
               ),
 
-              FutureBuilder<List<ProductModel>>(
-                future: _productsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-
-                  if (snapshot.hasError) {
-                    return const Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: Text('Error al cargar tus subastas'),
-                    );
-                  }
-
-                  final products = snapshot.data!;
-
-                  if (products.isEmpty) {
-                    return const Padding(
-                      padding: EdgeInsets.only(top: 40),
-                      child: Text('Aún no has publicado productos'),
-                    );
-                  }
-
-                  return Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: products.map((product) {
-                      return FutureBuilder<List<String>>(
-                        future: cargarImagenesProducto(product.id),
-                        builder: (context, imageSnapshot) {
-                          final imagenes = imageSnapshot.data ?? [];
-
-                          final imageUrl = imagenes.isNotEmpty
-                              ? imagenes.first
-                              : 'https://cdn-icons-png.flaticon.com/512/679/679720.png';
-
-                          return TarjetaMisProductos(
-                            size: size,
-                            linkImagen: imageUrl,
-                            nombreProducto: product.name,
-                            descripcionProducto: product.description,
-                            precioActual: product.initialPrice.toInt(),
-
-                            /// AQUÍ ESTÁ LA CLAVE
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditarEliminarSubastaScreen(
-                                    productId: product.id,
-                                    nombre: product.name,
-                                    descripcion: product.description,
-                                    precio: product.initialPrice.toInt(),
-                                    imagenes: imagenes.isNotEmpty
-                                        ? imagenes
-                                        : [imageUrl],
-                                  ),
-                                ),
-                              );
-
-                              // RECARGA AUTOMÁTICA AL VOLVER
-                              _recargarPantalla();
-                            },
-                          );
-                        },
+              if (sellerId == null)
+                const Padding(
+                  padding: EdgeInsets.only(top: 40),
+                  child: CircularProgressIndicator(),
+                )
+              else
+                FutureBuilder<List<ProductModel>>(
+                  future: _productsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 40),
+                        child: CircularProgressIndicator(),
                       );
-                    }).toList(),
-                  );
-                },
-              ),
+                    }
+
+                    if (snapshot.hasError) {
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 40),
+                        child: Text('Error al cargar tus subastas'),
+                      );
+                    }
+
+                    final products = snapshot.data ?? [];
+
+                    if (products.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.only(top: 40),
+                        child: Text('Aún no has publicado productos'),
+                      );
+                    }
+
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: products.map((product) {
+                        return FutureBuilder<List<String>>(
+                          future: cargarImagenesProducto(product.id),
+                          builder: (context, imageSnapshot) {
+                            final imagenes = imageSnapshot.data ?? [];
+
+                            final imageUrl = imagenes.isNotEmpty
+                                ? imagenes.first
+                                : 'https://cdn-icons-png.flaticon.com/512/679/679720.png';
+
+                            return TarjetaMisProductos(
+                              size: size,
+                              linkImagen: imageUrl,
+                              nombreProducto: product.name,
+                              descripcionProducto: product.description,
+                              precioActual: product.initialPrice.toInt(),
+
+                              onTap: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => EditarEliminarSubastaScreen(
+                                      productId: product.id,
+                                      nombre: product.name,
+                                      descripcion: product.description,
+                                      precio: product.initialPrice.toInt(),
+                                      imagenes: imagenes.isNotEmpty
+                                          ? imagenes
+                                          : [imageUrl],
+                                    ),
+                                  ),
+                                );
+
+                                _recargarPantalla();
+                              },
+                            );
+                          },
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
             ],
           ),
         ),
