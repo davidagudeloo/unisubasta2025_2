@@ -1,51 +1,51 @@
 import 'package:flutter/material.dart';
 
-class MessageFieldBox extends StatelessWidget {
-  const MessageFieldBox({super.key});
+class MessageFieldBox extends StatefulWidget {
+  final Function(String) onSend;
+
+  const MessageFieldBox({
+    super.key,
+    required this.onSend,
+  });
+
+  @override
+  State<MessageFieldBox> createState() => _MessageFieldBoxState();
+}
+
+class _MessageFieldBoxState extends State<MessageFieldBox> {
+  final TextEditingController controller = TextEditingController();
+
+  void submit() {
+    final text = controller.text.trim();
+    if (text.isEmpty) return;
+
+    widget.onSend(text);
+    controller.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController textController = TextEditingController();
-    final FocusNode focusNode = FocusNode();
-
-    // final ColorScheme colors = Theme.of(context).colorScheme;
-    final outlineInputBorder = UnderlineInputBorder(
-      borderSide: const BorderSide(color: Colors.transparent),
-      borderRadius: BorderRadius.circular(40),
-    );
-    final InputDecoration inputDecoration = InputDecoration(
-      hintText: 'End your message with a "??"',
-      enabledBorder: outlineInputBorder,
-      focusedBorder: outlineInputBorder,
-      filled: true,
-      suffixIcon: IconButton(
-        onPressed: () {
-          final String textValue = textController.value.text;
-          print('valor de la caja de texto es $textValue');
-          textController.clear();
-        },
-        icon: const Icon(Icons.send_outlined),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onSubmitted: (_) => submit(),
+              decoration: const InputDecoration(
+                hintText: "Escribe un mensaje...",
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.send),
+            onPressed: submit,
+          )
+        ],
       ),
-    );
-
-    return TextFormField(
-      onTapOutside: (event) {
-        focusNode.unfocus();
-      },
-      // keyboardType: TextInputType.number,
-      // minLines: 1,
-      // maxLines: 5,
-      focusNode: focusNode,
-      controller: textController,
-      decoration: inputDecoration,
-      onFieldSubmitted: (value) {
-        print('submited value: $value');
-        textController.clear();
-        focusNode.requestFocus();
-      },
-      // onChanged: (value) {
-      //   print('changed: $value');
-      // },
     );
   }
 }

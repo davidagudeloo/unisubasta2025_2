@@ -1,62 +1,38 @@
 import 'package:flutter/material.dart';
 
 class HerMessageBubble extends StatelessWidget {
-  const HerMessageBubble({super.key});
+  final String text;
+  final String imageUrl;
+
+  const HerMessageBubble({
+    super.key,
+    required this.text,
+    required this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Column(
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          decoration: BoxDecoration(
-            color: colors.secondary,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Text('jajajaja', style: TextStyle(color: Colors.white)),
+        CircleAvatar(
+          backgroundImage:
+              imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+          child: imageUrl.isEmpty ? const Icon(Icons.person) : null,
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(text),
           ),
         ),
-        const SizedBox(height: 5),
-        _ImageBubble(),
-        const SizedBox(height: 10),
       ],
-    );
-  }
-}
-
-class _ImageBubble extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Image.network(
-        'https://yesno.wtf/assets/yes/9-6403270cf95723ae4664274db51f1fd4.gif',
-        width: size.width * 0.7,
-        height: 150,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-
-          return Container(
-            color: const Color.fromARGB(42, 121, 118, 118),
-            width: size.width * 0.7,
-            height: 150,
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            child: const Center(
-              child: Text(
-                'Mi amor está enviando una imagen ...',
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }

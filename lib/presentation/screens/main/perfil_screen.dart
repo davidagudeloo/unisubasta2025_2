@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:unisubasta_udea_v1/constants/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unisubasta_udea_v1/presentation/screens/chat/chat_screen.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/hello_screen.dart';
 import 'package:unisubasta_udea_v1/data/services/user_service.dart';
 import 'package:unisubasta_udea_v1/data/services/products_service.dart';
 import 'package:unisubasta_udea_v1/data/services/bid_service.dart';
+
+// NUEVO IMPORT
+import 'package:unisubasta_udea_v1/presentation/screens/chat/chats_screen.dart';
 
 class PerfilScreen extends StatefulWidget {
   final User user;
@@ -21,7 +23,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
 
   int subastasCreadas = 0;
   int pujasRealizadas = 0;
-  int subastasGanadas = 0; // lo dejas en 0 como pediste
+  int subastasGanadas = 0;
 
   bool cargandoContadores = true;
 
@@ -69,11 +71,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
       final sellerId = await ProductsService.getMyUserId();
       if (sellerId == null) return;
 
-      // Subastas creadas
       final productos = await ProductsService.getProductsBySeller(sellerId);
       subastasCreadas = productos.length;
 
-      // Pujas realizadas
       final bids = await BidService.getMyBids(authUser);
       pujasRealizadas = bids.length;
 
@@ -110,8 +110,11 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         : const CircleAvatar(
                             radius: 40,
                             backgroundColor: AppColors.verdeClaro,
-                            child:
-                                Icon(Icons.person, size: 80, color: Colors.white),
+                            child: Icon(
+                              Icons.person,
+                              size: 80,
+                              color: Colors.white,
+                            ),
                           ),
                   ),
 
@@ -180,9 +183,7 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         itemSize: 26,
                       ),
                       const SizedBox(width: 5),
-                      Text(
-                        '${perfil!['reputacionPromedio'] ?? 0}',
-                      ),
+                      Text('${perfil!['reputacionPromedio'] ?? 0}'),
                     ],
                   ),
 
@@ -248,7 +249,7 @@ class CustomBotonPerfil extends StatelessWidget {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ChatScreen()),
+            MaterialPageRoute(builder: (context) => const ChatsScreen()),
           );
         },
         splashColor: AppColors.verdeClaro.withValues(alpha: 0.5),
