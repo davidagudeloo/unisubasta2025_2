@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unisubasta_udea_v1/data/models/message_model.dart';
 
 class MessageService {
-  static const String baseUrl = "http://192.168.30.114:8080";
+  static const String baseUrl = "https://codefact.udea.edu.co/unisubastas";
 
   static Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;

@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unisubasta_udea_v1/data/models/chat_model.dart';
 
 class ChatService {
-  static const String baseUrl = 'http://192.168.30.114:8080';
+  static const String baseUrl = 'https://codefact.udea.edu.co/unisubastas';
 
   // ============================================================
   // Obtener ID REAL del usuario logueado desde backend

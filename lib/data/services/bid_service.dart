@@ -1,11 +1,44 @@
 import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:unisubasta_udea_v1/data/models/bid_model.dart';
 import 'package:unisubasta_udea_v1/data/models/product_model.dart';
 
 class BidService {
-  static const String baseUrl = 'http://192.168.30.114:8080';
+  static const String baseUrl = 'https://codefact.udea.edu.co/unisubastas';
+  late WebSocketChannel _channel;
+  
+  // Función para inicializar la conexión WebSocket
+  void initWebSocket() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception("Usuario no autenticado");
+
+    final token = await user.getIdToken();
+
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://codefact.udea.edu.co/unisubastas/api/bid/create'), // Cambia la URL de tu servidor WebSocket
+    );
+
+    // Escucha los mensajes de WebSocket
+    _channel.stream.listen((message) {
+      _onNewBidUpdate(message);
+    });
+  }
+
+  // Recibir actualizaciones de pujas
+  void _onNewBidUpdate(dynamic message) {
+    final decodedMessage = jsonDecode(message);
+    
+    final bidUpdate = BidModel.fromJson(decodedMessage['bid']);
+    final productUpdate = ProductModel.fromJson(decodedMessage['product']);
+    
+  }
+
+  // Cerrar WebSocket cuando ya no se necesite
+  void closeWebSocket() {
+    _channel.sink.close();
+  }
 
   // Crear una nueva puja
   static Future<BidModel> createBid({
@@ -94,7 +127,7 @@ class BidService {
     }
   }
 
-  // Obtener los datos completos de un producto por ID (se necesita en Mis Pujas)
+  // Obtener los datos completos de un producto por ID
   static Future<ProductModel> getProductById({
     required User user,
     required int productId,

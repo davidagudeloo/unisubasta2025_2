@@ -7,6 +7,8 @@ import 'package:unisubasta_udea_v1/data/models/product_model.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/tarjeta_producto.dart';
 import 'package:unisubasta_udea_v1/presentation/widgets/shared/titulo_seccion.dart';
 import 'package:unisubasta_udea_v1/presentation/screens/detalle_producto_screen.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
 class PujarScreen extends StatefulWidget {
   const PujarScreen({super.key});
@@ -17,13 +19,50 @@ class PujarScreen extends StatefulWidget {
 
 class _PujarScreenState extends State<PujarScreen> {
   late Future<List<_PujaConProducto>> _futurePujas;
+  late WebSocketChannel _channel;
+  List<_PujaConProducto> pujas = [];
 
   @override
   void initState() {
     super.initState();
     _futurePujas = cargarMisPujas();
+    _connectWebSocket();
   }
 
+  // Conexión WebSocket para recibir las actualizaciones de las pujas
+  void _connectWebSocket() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) throw Exception("Usuario no autenticado");
+
+    final token = await user.getIdToken();
+
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://192.168.30.115:8080/bid/create'), // Cambia a la URL de tu servidor WebSocket
+    );
+
+    _channel.stream.listen((message) {
+      _onNewBidUpdate(message); // Maneja la nueva puja recibida
+    });
+  }
+
+  // Maneja la actualización de puja recibida desde el WebSocket
+  void _onNewBidUpdate(dynamic message) {
+    final decodedMessage = jsonDecode(message);
+    final bidUpdate = BidModel.fromJson(decodedMessage['bid']);
+    final productUpdate = ProductModel.fromJson(decodedMessage['product']);
+
+    setState(() {
+      // Actualiza la lista de pujas
+      final index = pujas.indexWhere((puja) => puja.product.id == productUpdate.id);
+      if (index != -1) {
+        pujas[index] = _PujaConProducto(bid: bidUpdate, product: productUpdate, imagenes: decodedMessage['imagenes'].cast<String>());
+      } else {
+        pujas.add(_PujaConProducto(bid: bidUpdate, product: productUpdate, imagenes: decodedMessage['imagenes'].cast<String>()));
+      }
+    });
+  }
+
+  // Función para cargar las pujas iniciales
   Future<List<_PujaConProducto>> cargarMisPujas() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw Exception("Usuario no autenticado");
@@ -78,7 +117,6 @@ class _PujarScreenState extends State<PujarScreen> {
               alignment: Alignment.centerLeft,
               child: TituloSeccion(texto: "  Mis pujas"),
             ),
-
             FutureBuilder<List<_PujaConProducto>>(
               future: _futurePujas,
               builder: (context, snapshot) {
@@ -111,8 +149,6 @@ class _PujarScreenState extends State<PujarScreen> {
                   alignment: WrapAlignment.spaceBetween,
                   children: pujas.map((puja) {
                     final product = puja.product;
-
-                    // Corrección del precio: usar currentPrice si existe, si no initialPrice
                     final int precioFinal =
                         (product.currentPrice ?? product.initialPrice).toInt();
 
@@ -136,7 +172,6 @@ class _PujarScreenState extends State<PujarScreen> {
                             ),
                           ),
                         );
-
                         setState(() {
                           _futurePujas = cargarMisPujas();
                         });
@@ -150,6 +185,12 @@ class _PujarScreenState extends State<PujarScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _channel.sink.close(); // Cierra el WebSocket cuando la pantalla se destruye
+    super.dispose();
   }
 }
 

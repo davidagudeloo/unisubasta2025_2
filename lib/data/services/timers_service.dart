@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
 class TimersService {
-  static const String baseUrl = 'http://192.168.30.114:8080';
+  static const String baseUrl = 'https://codefact.udea.edu.co/unisubastas';
 
   static Future<int> createTimer(int milliseconds) async {
     final user = FirebaseAuth.instance.currentUser;

@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:unisubasta_udea_v1/data/models/product_model.dart';
 
 class ProductsService {
-  static const String baseUrl = 'http://192.168.30.114:8080';
+  static const String baseUrl = 'https://codefact.udea.edu.co/unisubastas';
 
   // ============================================================
   // Obtener ID REAL del usuario logueado desde backend
@@ -119,7 +119,7 @@ class ProductsService {
       "openingDate": openingDate.toUtc().toIso8601String(),
       "closingDate": closingDate.toUtc().toIso8601String(),
       "timerId": timerId,
-      "sellerId": myUserId, // ← AQUÍ EL CAMBIO IMPORTANTE
+      "sellerId": myUserId, 
       "buyerId": null,
       "productStateId": 1,
       "availabilityStateId": 1,

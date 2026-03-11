@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class UserService {
-  static const String baseUrl = 'http://192.168.30.114:8080';
+  static const String baseUrl = 'https://codefact.udea.edu.co/unisubastas';
 
   // ==========================================
   // Obtener perfil del usuario autenticado

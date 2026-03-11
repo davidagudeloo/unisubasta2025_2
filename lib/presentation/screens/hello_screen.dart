@@ -45,7 +45,7 @@ class _HelloScreenState extends State<HelloScreen> {
   Future<bool> enviarUsuarioAlBackend(User user) async {
     try {
       final token = await user.getIdToken();
-      final url = Uri.parse('http://192.168.30.114:8080/api/users/me');
+      final url = Uri.parse('https://codefact.udea.edu.co/unisubastas/api/users/me');
 
       // Consultar si ya existe
       final getResponse = await http.get(

@@ -75,7 +75,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void _connectWebSocket() {
     stompClient = StompClient(
       config: StompConfig.sockJS(
-        url: "http://192.168.30.114:8080/ws-chat",
+        url: "https://codefact.udea.edu.co/unisubastas/ws-chat",
         onConnect: _onWebSocketConnected,
         onStompError: (frame) => debugPrint("STOMP ERROR: ${frame.body}"),
         onWebSocketError: (error) => debugPrint("WS ERROR: $error"),
