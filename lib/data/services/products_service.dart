@@ -27,7 +27,7 @@ class ProductsService {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data["idUsuario"]; // ← este es el ID real de PostgreSQL
+      return data["idUsuario"]; 
     }
 
     return null;
